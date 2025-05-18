@@ -15,7 +15,7 @@ import java.util.List;
  * An ImageViewer extension that allows you to convert either a single image or a directory
  * of images from PNG to Jpeg or vice versa.
  *
- * @author scorbett
+ * @author scorbo2
  * @since 2023-12-31 - Happy New Year!
  */
 public class ImageConverterExtension extends ImageViewerExtension {

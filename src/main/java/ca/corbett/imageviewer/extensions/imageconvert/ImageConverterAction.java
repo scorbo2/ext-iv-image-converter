@@ -10,7 +10,7 @@ import java.io.File;
 /**
  * Shows the ImageConverterDialog if an image is currently selected in the MainWindow.
  *
- * @author scorbett
+ * @author scorbo2
  */
 public class ImageConverterAction extends AbstractAction {
 

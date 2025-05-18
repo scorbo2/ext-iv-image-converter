@@ -45,7 +45,7 @@ import java.util.logging.Logger;
  * Presents a dialog with options for converting either a single images or a directory
  * of images from jpeg to png format, or vice versa.
  *
- * @author scorbett
+ * @author scorbo2
  * @since 2023-12-29
  */
 public class ImageConverterDialog extends JDialog implements KeyEventDispatcher {
@@ -53,8 +53,6 @@ public class ImageConverterDialog extends JDialog implements KeyEventDispatcher 
     public enum OperationOutcome {
         SkippedBecauseExists, InternalError, Success
     }
-
-    ;
 
     private static final Logger logger = Logger.getLogger(ImageConverterDialog.class.getName());
 

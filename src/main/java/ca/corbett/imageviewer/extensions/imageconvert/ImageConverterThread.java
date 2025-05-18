@@ -16,9 +16,9 @@ import java.util.logging.Logger;
 /**
  * A worker thread for handling batch conversion of entire directories of images
  * at a time. Launched from ImageConverterDialog. Much of this code was copied
- * from ImageResizeThread.
+ * from ImageResizeThread in the ImageResize extension.
  *
- * @author scorbett
+ * @author scorbo2
  * @since 2023-12-31
  */
 public class ImageConverterThread implements Runnable {
@@ -161,7 +161,5 @@ public class ImageConverterThread implements Runnable {
         }
 
         MainWindow.getInstance().showMessageDialog("Conversion complete", msg);
-
     }
-
 }
