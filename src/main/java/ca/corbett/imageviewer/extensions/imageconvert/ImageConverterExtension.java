@@ -36,7 +36,7 @@ public class ImageConverterExtension extends ImageViewerExtension {
     }
 
     @Override
-    public List<AbstractProperty> getConfigProperties() {
+    protected List<AbstractProperty> createConfigProperties() {
         return null;
     }
 
