@@ -17,7 +17,7 @@ mvn package
 Now you can copy the extension jar to wherever you keep your imageviewer extensions:
 
 ```shell
-cp target/ext-iv-image-converter-2.1.0-SNAPSHOT.jar ~/.ImageViewer/extensions
+cp target/ext-iv-image-converter-2.1.0.jar ~/.ImageViewer/extensions
 ```
 
 Now restart imageviewer and you can hit Ctrl+J or select "Convert image" from the "Edit" menu:
