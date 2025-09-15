@@ -1,5 +1,9 @@
 package ca.corbett.imageviewer.extensions.imageconvert;
 
+import ca.corbett.forms.Alignment;
+import ca.corbett.forms.Margins;
+import ca.corbett.forms.fields.FormField;
+import ca.corbett.forms.fields.ValueChangedListener;
 import ca.corbett.imageviewer.ui.ImageInstance;
 import ca.corbett.imageviewer.ui.MainWindow;
 import ca.corbett.extras.image.ImageUtil;
@@ -60,8 +64,8 @@ public class ImageConverterDialog extends JDialog implements KeyEventDispatcher 
 
     private MessageUtil messageUtil;
 
-    private ComboField conversionQuantityChooser;
-    private ComboField conversionTypeChooser;
+    private ComboField<String> conversionQuantityChooser;
+    private ComboField<String> conversionTypeChooser;
     private CheckBoxField deleteOriginalCheckbox;
     private CheckBoxField overwriteIfExistsCheckbox;
     private NumberField jpegQualityField;
@@ -163,6 +167,11 @@ public class ImageConverterDialog extends JDialog implements KeyEventDispatcher 
             // Delete the source file if successful and if so directed:
             if (deleteOriginalCheckbox.isChecked()) {
                 srcFile.delete();
+
+                // Notify the ImageSetManager that this image has moved:
+                // (note: if deleteOriginal is not selected, we'll skip this and just
+                //  leave the original image in the image set. User can sort it out as needed).
+                MainWindow.getInstance().getImageSetManager().imageMoved(srcFile, targetFile);
             }
 
             // Modify the target file to have the same creation time as the source file:
@@ -227,46 +236,40 @@ public class ImageConverterDialog extends JDialog implements KeyEventDispatcher 
     }
 
     private FormPanel buildControlPanel() {
-        FormPanel formPanel = new FormPanel(FormPanel.Alignment.TOP_CENTER);
+        FormPanel formPanel = new FormPanel(Alignment.TOP_CENTER);
 
         List<String> options = new ArrayList<>();
         options.add("Selected image");
         options.add("All images in this directory");
         options.add("All images recursively");
-        conversionQuantityChooser = new ComboField("Convert:", options, 0, false);
-        conversionQuantityChooser.setMargins(16, 4, 4, 4, 4);
-        formPanel.addFormField(conversionQuantityChooser);
+        conversionQuantityChooser = new ComboField<>("Convert:", options, 0, false);
+        conversionQuantityChooser.setMargins(new Margins(16, 4, 4, 4, 4));
+        formPanel.add(conversionQuantityChooser);
 
         options = new ArrayList<>();
         options.add("Jpeg -> PNG");
         options.add("PNG -> Jpeg");
-        conversionTypeChooser = new ComboField("Format:", options, 0, false);
-        conversionTypeChooser.addValueChangedAction(new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                jpegQualityField.setEnabled(conversionTypeChooser.getSelectedIndex() == 1);
-            }
-
-        });
-        formPanel.addFormField(conversionTypeChooser);
+        conversionTypeChooser = new ComboField<>("Format:", options, 0, false);
+        conversionTypeChooser.addValueChangedListener(
+            field -> jpegQualityField.setEnabled(conversionTypeChooser.getSelectedIndex() == 1));
+        formPanel.add(conversionTypeChooser);
 
         deleteOriginalCheckbox = new CheckBoxField("Remove source file(s) after conversion", false);
-        formPanel.addFormField(deleteOriginalCheckbox);
+        formPanel.add(deleteOriginalCheckbox);
 
         overwriteIfExistsCheckbox = new CheckBoxField("Overwrite target file(s) if they exist", false);
-        formPanel.addFormField(overwriteIfExistsCheckbox);
+        formPanel.add(overwriteIfExistsCheckbox);
 
         jpegQualityField = new NumberField("Jpeg quality:", 95, 60, 99, 1);
         jpegQualityField.setEnabled(false);
-        formPanel.addFormField(jpegQualityField);
+        formPanel.add(jpegQualityField);
 
         preserveDateCheckbox = new CheckBoxField("Preserve file date/time when converting", true);
-        formPanel.addFormField(preserveDateCheckbox);
+        formPanel.add(preserveDateCheckbox);
 
         extraLoggingCheckbox = new CheckBoxField("Log each conversion result", false);
-        formPanel.addFormField(extraLoggingCheckbox);
+        formPanel.add(extraLoggingCheckbox);
 
-        formPanel.render();
         return formPanel;
     }
 

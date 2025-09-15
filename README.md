@@ -17,7 +17,7 @@ mvn package
 Now you can copy the extension jar to wherever you keep your imageviewer extensions:
 
 ```shell
-cp target/ext-iv-image-converter-2.1.0.jar ~/.ImageViewer/extensions
+cp target/ext-iv-image-converter-2.2.0.jar ~/.ImageViewer/extensions
 ```
 
 Now restart imageviewer and you can hit Ctrl+J or select "Convert image" from the "Edit" menu:
@@ -35,7 +35,7 @@ the original images should be deleted after conversion or kept. Hit OK to begin 
 
 ### Requirements
 
-ImageViewer 2.1 or higher
+ImageViewer 2.2 or higher
 
 ### License
 

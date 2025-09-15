@@ -3,6 +3,7 @@ package ca.corbett.imageviewer.extensions.imageconvert;
 import ca.corbett.extensions.AppExtensionInfo;
 import ca.corbett.extras.properties.AbstractProperty;
 import ca.corbett.imageviewer.extensions.ImageViewerExtension;
+import ca.corbett.imageviewer.ui.MainWindow;
 
 import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
@@ -41,7 +42,11 @@ public class ImageConverterExtension extends ImageViewerExtension {
     }
 
     @Override
-    public List<JMenuItem> getMenuItems(String topLevelMenu) {
+    public List<JMenuItem> getMenuItems(String topLevelMenu, MainWindow.BrowseMode browseMode) {
+        if (browseMode == MainWindow.BrowseMode.IMAGE_SET) {
+            return null; // we COULD allow conversion from within an image set...
+        }
+
         if ("Edit".equals(topLevelMenu)) {
             List<JMenuItem> list = new ArrayList<>();
             list.add(buildMenuItem());
@@ -51,7 +56,11 @@ public class ImageConverterExtension extends ImageViewerExtension {
     }
 
     @Override
-    public List<JMenuItem> getPopupMenuItems() {
+    public List<JMenuItem> getPopupMenuItems(MainWindow.BrowseMode browseMode) {
+        if (browseMode == MainWindow.BrowseMode.IMAGE_SET) {
+            return null; // we COULD allow conversion from within an image set...
+        }
+
         List<JMenuItem> list = new ArrayList<>();
         list.add(buildMenuItem());
         return list;
