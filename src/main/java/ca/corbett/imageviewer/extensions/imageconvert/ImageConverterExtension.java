@@ -32,6 +32,10 @@ public class ImageConverterExtension extends ImageViewerExtension {
     }
 
     @Override
+    public void loadJarResources() {
+    }
+
+    @Override
     public AppExtensionInfo getInfo() {
         return extInfo;
     }
