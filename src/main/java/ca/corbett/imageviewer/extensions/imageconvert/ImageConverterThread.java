@@ -144,7 +144,7 @@ public class ImageConverterThread implements Runnable {
 
     private void conversionCompleteHandler() {
         MainWindow.getInstance().enableDirTree();
-        MainWindow.getInstance().reloadCurrentDirectory();
+        MainWindow.getInstance().reload();
 
         if (wasCanceled()) {
             MainWindow.getInstance().showMessageDialog("Conversion canceled",

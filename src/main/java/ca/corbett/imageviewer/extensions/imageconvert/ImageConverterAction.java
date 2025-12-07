@@ -22,7 +22,14 @@ public class ImageConverterAction extends AbstractAction {
     public void actionPerformed(ActionEvent e) {
         ImageInstance currentImage = MainWindow.getInstance().getSelectedImage();
         if (currentImage.isEmpty()) {
-            MainWindow.getInstance().showMessageDialog("Resize image", "Nothing selected.");
+            MainWindow.getInstance().showMessageDialog("Convert image", "Nothing selected.");
+            return;
+        }
+
+        // Ensure correct browse mode:
+        if (MainWindow.getInstance().getBrowseMode() == MainWindow.BrowseMode.IMAGE_SET) {
+            MainWindow.getInstance().showMessageDialog("Convert image",
+                                                       "Image conversion is only supported when browsing the file system.");
             return;
         }
 

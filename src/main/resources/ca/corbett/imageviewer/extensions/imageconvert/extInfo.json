@@ -1,9 +1,9 @@
 {
   "name": "Convert image",
   "author": "steve@corbett.ca",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "targetAppName": "ImageViewer",
-  "targetAppVersion": "2.2",
+  "targetAppVersion": "2.3",
   "shortDescription": "Allows conversion from jpeg to png or vice versa",
   "longDescription": "Allows you to convert an images or a directory of images from jpeg to png format, or vice versa.",
   "customFields": {
