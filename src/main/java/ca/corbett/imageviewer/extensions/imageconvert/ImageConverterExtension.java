@@ -49,7 +49,7 @@ public class ImageConverterExtension extends ImageViewerExtension {
 
         props.add(new KeyStrokeProperty(keyStrokeProp, "Image converter:",
                                         KeyStrokeManager.parseKeyStroke("Ctrl+J"),
-                                        new ImageConverterAction())
+                                        ImageConverterAction.getInstance())
                       .setAllowBlank(true)
                       .addFormFieldGenerationListener(new ReservedKeyStrokeWorkaround()));
 
@@ -66,7 +66,7 @@ public class ImageConverterExtension extends ImageViewerExtension {
         }
 
         if ("Edit".equals(topLevelMenu)) {
-            return List.of(new ImageConverterAction());
+            return List.of(ImageConverterAction.getInstance());
         }
 
         return null;
@@ -81,6 +81,6 @@ public class ImageConverterExtension extends ImageViewerExtension {
             return null;
         }
 
-        return List.of(new ImageConverterAction());
+        return List.of(ImageConverterAction.getInstance());
     }
 }

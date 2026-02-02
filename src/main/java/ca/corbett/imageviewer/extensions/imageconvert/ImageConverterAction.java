@@ -14,10 +14,19 @@ import java.io.File;
  */
 public class ImageConverterAction extends EnhancedAction {
 
+    private static ImageConverterAction instance;
+
     private static final String NAME = "Convert image...";
 
-    public ImageConverterAction() {
+    private ImageConverterAction() {
         super(NAME);
+    }
+
+    public static ImageConverterAction getInstance() {
+        if (instance == null) {
+            instance = new ImageConverterAction();
+        }
+        return instance;
     }
 
     @Override
