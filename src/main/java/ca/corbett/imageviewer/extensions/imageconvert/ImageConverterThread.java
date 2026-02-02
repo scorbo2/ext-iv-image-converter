@@ -116,14 +116,16 @@ public class ImageConverterThread extends SimpleProgressWorker {
                     }
 
                     image.flush();
-                    i++;
                 }
                 catch (IOException ioe) {
                     problemCount++;
                     logger.log(Level.SEVERE,
-                               "convertImage: Caught exception while resizing " + file.getAbsolutePath() + ": " + ioe.getMessage(),
+                               "convertImage: Caught exception while converting " + file.getAbsolutePath() + ": " + ioe.getMessage(),
                                ioe);
                 }
+
+                // Next file:
+                i++;
             }
         }
         finally {

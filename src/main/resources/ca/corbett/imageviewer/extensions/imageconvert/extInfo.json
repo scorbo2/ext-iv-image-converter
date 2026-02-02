@@ -5,7 +5,7 @@
   "targetAppName": "ImageViewer",
   "targetAppVersion": "3.0",
   "shortDescription": "Allows conversion from jpeg to png or vice versa",
-  "longDescription": "Allows you to convert an images or a directory of images from jpeg to png format, or vice versa.",
+  "longDescription": "Allows you to convert an image or a directory of images from jpeg to png format, or vice versa.",
   "customFields": {
     "Keyboard shortcut": "Default: Ctrl+J - change in application settings."
   }
