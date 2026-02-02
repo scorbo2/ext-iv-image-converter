@@ -1,18 +1,21 @@
 package ca.corbett.imageviewer.extensions.imageconvert;
 
-import ca.corbett.forms.Alignment;
-import ca.corbett.forms.Margins;
-import ca.corbett.forms.fields.FormField;
-import ca.corbett.forms.fields.ValueChangedListener;
-import ca.corbett.imageviewer.ui.ImageInstance;
-import ca.corbett.imageviewer.ui.MainWindow;
+import ca.corbett.extras.MessageUtil;
 import ca.corbett.extras.image.ImageUtil;
 import ca.corbett.extras.io.FileSystemUtil;
-import ca.corbett.extras.MessageUtil;
+import ca.corbett.extras.io.KeyStrokeManager;
+import ca.corbett.extras.logging.Stopwatch;
+import ca.corbett.extras.progress.MultiProgressDialog;
+import ca.corbett.extras.progress.SimpleProgressAdapter;
+import ca.corbett.forms.Alignment;
 import ca.corbett.forms.FormPanel;
+import ca.corbett.forms.Margins;
 import ca.corbett.forms.fields.CheckBoxField;
 import ca.corbett.forms.fields.ComboField;
 import ca.corbett.forms.fields.NumberField;
+import ca.corbett.imageviewer.ui.ImageInstance;
+import ca.corbett.imageviewer.ui.MainWindow;
+import ca.corbett.imageviewer.ui.ThumbCacheManager;
 import org.apache.commons.io.FilenameUtils;
 
 import javax.imageio.ImageIO;
@@ -23,15 +26,12 @@ import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import javax.swing.border.BevelBorder;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.KeyEventDispatcher;
-import java.awt.KeyboardFocusManager;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -49,10 +49,10 @@ import java.util.logging.Logger;
  * Presents a dialog with options for converting either a single images or a directory
  * of images from jpeg to png format, or vice versa.
  *
- * @author scorbo2
+ * @author <a href="https://github.com/scorbo2">scorbo2</a>
  * @since 2023-12-29
  */
-public class ImageConverterDialog extends JDialog implements KeyEventDispatcher {
+public class ImageConverterDialog extends JDialog {
 
     public enum OperationOutcome {
         SkippedBecauseExists, InternalError, Success
@@ -61,6 +61,7 @@ public class ImageConverterDialog extends JDialog implements KeyEventDispatcher 
     private static final Logger logger = Logger.getLogger(ImageConverterDialog.class.getName());
 
     private final ImageInstance selectedImage;
+    private final KeyStrokeManager keyStrokeManager;
 
     private MessageUtil messageUtil;
 
@@ -75,49 +76,32 @@ public class ImageConverterDialog extends JDialog implements KeyEventDispatcher 
     public ImageConverterDialog(ImageInstance image) {
         super(MainWindow.getInstance(), "Convert image");
         this.selectedImage = image;
+        this.keyStrokeManager = new KeyStrokeManager(this);
+        configureKeyStrokes();
         setSize(new Dimension(480, 300));
         setMinimumSize(new Dimension(480, 300));
         setResizable(false);
         setLocationRelativeTo(MainWindow.getInstance());
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        setModal(true);
         initComponents();
+        loadImageDetails();
     }
 
-    @Override
-    public void setVisible(boolean visible) {
-        super.setVisible(visible);
-        if (visible) {
-            loadImageDetails();
-            KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this);
-        }
-    }
-
-    @Override
-    public void dispose() {
-        KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventDispatcher(this);
-        super.dispose();
-    }
-
-    @Override
-    public boolean dispatchKeyEvent(KeyEvent e) {
-        if (!isActive()) {
-            return false; // don't capture keystrokes if this dialog isn't showing.
-        }
-
-        if (e.getID() == KeyEvent.KEY_RELEASED) {
-            switch (e.getKeyCode()) {
-
-                case KeyEvent.VK_ESCAPE:
-                    dispose();
-                    break;
-
-                case KeyEvent.VK_ENTER:
-                    okHandler();
-                    break;
+    private void configureKeyStrokes() {
+        keyStrokeManager.clear();
+        keyStrokeManager.registerHandler("esc", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                dispose();
             }
-        }
-
-        return false;
+        });
+        keyStrokeManager.registerHandler("enter", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                okHandler();
+            }
+        });
     }
 
     /**
@@ -126,9 +110,10 @@ public class ImageConverterDialog extends JDialog implements KeyEventDispatcher 
      *
      * @param srcFile The file containing the image to be converted.
      * @param image   The image data.
+     * @param disposeOnSuccess if true, the dialog will be disposed if the conversion is successful.
      * @return An OperationOutcome that described what happened.
      */
-    public OperationOutcome convertImage(File srcFile, BufferedImage image) {
+    public OperationOutcome convertImage(File srcFile, BufferedImage image, boolean disposeOnSuccess) {
         final String targetExtension = conversionTypeChooser.getSelectedIndex() == 0 ? ".png" : ".jpg";
         File targetFile = new File(srcFile.getParentFile(),
                                    FilenameUtils.getBaseName(srcFile.getName()) + targetExtension);
@@ -168,6 +153,14 @@ public class ImageConverterDialog extends JDialog implements KeyEventDispatcher 
             if (deleteOriginalCheckbox.isChecked()) {
                 srcFile.delete();
 
+                // Let the thumbnail manager know the source file is gone:
+                // (we MIGHT want to go through ImageOperationHandler to report this move,
+                //  as other extensions might need to know that the image file has effectively moved...
+                //  This code will break if https://github.com/scorbo2/imageviewer/issues/40 is ever addressed.
+                //  Right now it will work, because companion files only consider the base filename,
+                //  not the extension. Still, this feels sloppy.)
+                ThumbCacheManager.remove(srcFile);
+
                 // Notify the ImageSetManager that this image has moved:
                 // (note: if deleteOriginal is not selected, we'll skip this and just
                 //  leave the original image in the image set. User can sort it out as needed).
@@ -183,20 +176,38 @@ public class ImageConverterDialog extends JDialog implements KeyEventDispatcher 
             logger.log(Level.SEVERE, "Image conversion error: " + ioe.getMessage(), ioe);
             return OperationOutcome.InternalError;
         }
-        dispose();
+        if (disposeOnSuccess) {
+            dispose();
+        }
         return OperationOutcome.Success;
     }
 
     private void convertImage() {
-        OperationOutcome outcome = convertImage(selectedImage.getImageFile(), selectedImage.getRegularImage());
+        Stopwatch.start("imageConvert");
+        OperationOutcome outcome = convertImage(selectedImage.getImageFile(), selectedImage.getRegularImage(), true);
+        Stopwatch.stop("imageConvert");
         switch (outcome) {
             case InternalError:
+                if (extraLoggingCheckbox.isChecked()) {
+                    logger.log(Level.SEVERE, "Problem converting {0}",
+                               new Object[]{selectedImage.getImageFileName()});
+                }
                 getMessageUtil().error("Conversion error", "An internal error occurred. Check the log for details.");
                 break;
             case SkippedBecauseExists:
+                if (extraLoggingCheckbox.isChecked()) {
+                    logger.log(Level.INFO, "Skipped {0} (already exists)",
+                               new Object[]{selectedImage.getImageFileName()});
+                }
                 getMessageUtil().info("Conversion skipped", "Conversion was skipped because the output file exists.");
                 break;
             case Success:
+                if (extraLoggingCheckbox.isChecked()) {
+                    logger.log(Level.INFO, "Converted {0} in {1}",
+                               new Object[]{selectedImage.getImageFileName(),
+                                   Stopwatch.reportFormatted("imageConvert")});
+                }
+                MainWindow.getInstance().reload();
                 getMessageUtil().info("Conversion complete", "The file was successfully converted.");
                 break;
         }
@@ -224,9 +235,10 @@ public class ImageConverterDialog extends JDialog implements KeyEventDispatcher 
         }
 
         ImageConverterThread worker = new ImageConverterThread(this, fileList, extraLoggingCheckbox.isChecked());
-        MainWindow.getInstance().disableDirTree();
-        new Thread(worker).start();
-        dispose();
+        worker.addProgressListener(new ThreadProgressListener(this, worker));
+        MultiProgressDialog progressDialog = new MultiProgressDialog(this, "Converting images...");
+        progressDialog.setInitialShowDelayMS(250); // Don't show for very fast conversions
+        progressDialog.runWorker(worker, true);
     }
 
     private void initComponents() {
@@ -280,24 +292,12 @@ public class ImageConverterDialog extends JDialog implements KeyEventDispatcher 
 
         JButton button = new JButton("OK");
         button.setPreferredSize(new Dimension(90, 23));
-        button.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                okHandler();
-            }
-
-        });
+        button.addActionListener(e -> okHandler());
         panel.add(button);
 
         button = new JButton("Cancel");
         button.setPreferredSize(new Dimension(90, 23));
-        button.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                dispose();
-            }
-
-        });
+        button.addActionListener(e -> dispose());
         panel.add(button);
 
         return panel;
@@ -325,4 +325,56 @@ public class ImageConverterDialog extends JDialog implements KeyEventDispatcher 
         return messageUtil;
     }
 
+    /**
+     * Listens to our ImageConverterThread and shows appropriate messages when done or canceled.
+     * Note that these callbacks fire on the worker thread, not on the EDT!
+     * We need to take care to switch to the EDT when showing dialogs.
+     */
+    private static class ThreadProgressListener extends SimpleProgressAdapter {
+
+        private final ImageConverterDialog ownerDialog;
+        private final ImageConverterThread thread;
+
+        public ThreadProgressListener(ImageConverterDialog owner, ImageConverterThread thread) {
+            this.ownerDialog = owner;
+            this.thread = thread;
+        }
+
+        @Override
+        public void progressCanceled() {
+            SwingUtilities.invokeLater(() -> {
+                if (thread.getConvertedCount() > 0) {
+                    MainWindow.getInstance().reload();
+                }
+                MainWindow.getInstance().showMessageDialog("Conversion canceled",
+                                                           "The conversion operation was canceled while in progress.\n"
+                                                               + thread.getConvertedCount()
+                                                               + " images were converted before the cancellation.");
+            });
+        }
+
+        @Override
+        public void progressComplete() {
+            String msg = "The conversion operation evaluated "
+                + thread.getProcessedCount()
+                + " images.\n"
+                + thread.getConvertedCount()
+                + " were converted and "
+                + thread.getSkippedCount()
+                + " were skipped.\n"
+                + "Total time spent converting images: "
+                + Stopwatch.formatTimeValue(thread.getTotalTimeSpent()) + "\n";
+            if (thread.getProblemCount() > 0) {
+                msg += thread.getProblemCount() + " problems were encountered (see log file).";
+            }
+
+            final String message = msg;
+            MainWindow mw = MainWindow.getInstance();
+            SwingUtilities.invokeLater(() -> {
+                MainWindow.getInstance().reload();
+                ownerDialog.dispose();
+                mw.showMessageDialog("Conversion complete", message);
+            });
+        }
+    }
 }
