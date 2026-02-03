@@ -22,7 +22,7 @@ import java.util.List;
  */
 public class ImageConverterExtension extends ImageViewerExtension {
 
-    private static final String keyStrokeProp = AppConfig.KEYSTROKE_PREFIX + "Image Converter.convertKeyStroke";
+    private static final String keyStrokeProp = AppConfig.KEYSTROKE_MISC_PREFIX + "imageConverter";
     private final AppExtensionInfo extInfo;
 
     public ImageConverterExtension() {
@@ -47,10 +47,11 @@ public class ImageConverterExtension extends ImageViewerExtension {
     protected List<AbstractProperty> createConfigProperties() {
         List<AbstractProperty> props = new ArrayList<>();
 
-        props.add(new KeyStrokeProperty(keyStrokeProp, "Image converter:",
+        props.add(new KeyStrokeProperty(keyStrokeProp, "Convert image(s):",
                                         KeyStrokeManager.parseKeyStroke("Ctrl+J"),
                                         ImageConverterAction.getInstance())
                       .setAllowBlank(true)
+                      .setHelpText("Show the image conversion dialog")
                       .addFormFieldGenerationListener(new ReservedKeyStrokeWorkaround()));
 
         return props;
