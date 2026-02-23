@@ -8,7 +8,6 @@ import ca.corbett.extras.properties.KeyStrokeProperty;
 import ca.corbett.imageviewer.AppConfig;
 import ca.corbett.imageviewer.extensions.ImageViewerExtension;
 import ca.corbett.imageviewer.ui.MainWindow;
-import ca.corbett.imageviewer.ui.ReservedKeyStrokeWorkaround;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,8 +50,8 @@ public class ImageConverterExtension extends ImageViewerExtension {
                                         KeyStrokeManager.parseKeyStroke("Ctrl+J"),
                                         ImageConverterAction.getInstance())
                       .setAllowBlank(true)
-                      .setHelpText("Show the image conversion dialog")
-                      .addFormFieldGenerationListener(new ReservedKeyStrokeWorkaround()));
+                      .setReservedKeyStrokes(AppConfig.RESERVED_KEYSTROKES)
+                      .setHelpText("Show the image conversion dialog"));
 
         return props;
     }
