@@ -20,14 +20,15 @@ It's just that easy!
 
 ### Option 2: manual download and install
 
-You can manually download the extension jar: 
-[ext-iv-image-converter-2.3.0.jar](http://www.corbett.ca/apps/ImageViewer/extensions/2.3/ext-iv-image-converter-2.3.0.jar)
+You can manually download the extension jar:
+[ext-iv-image-converter-3.0.0.jar](http://www.corbett.ca/apps/ImageViewer/extensions/3.0/ext-iv-image-converter-3.0.0.jar)
 
 Save it to your ~/.ImageViewer/extensions directory and restart the application.
 
 ### Option 3: build from source
 
-You can clone this repo and build the extension jar with Maven (Java 17 or higher required):
+You can clone this repo and build the extension jar with Maven (Java 17 or higher required).
+Note: you must already have run `mvn install` in the main ImageViewer repo, as that is a dependency for this code.
 
 ```shell
 git clone https://github.com/scorbo2/ext-iv-image-converter.git
@@ -35,7 +36,7 @@ cd ext-iv-image-converter
 mvn package
 
 # Copy the result to extensions directory:
-cp target/ext-iv-image-converter-2.3.0.jar ~/.ImageViewer/extensions
+cp target/ext-iv-image-converter-3.0.0.jar ~/.ImageViewer/extensions
 ```
 
 ## Okay, it's installed, now how do I use it?
@@ -55,8 +56,8 @@ the original images should be deleted after conversion or kept. Hit OK to begin 
 
 ## Requirements
 
-ImageViewer 2.3 or higher
+Compatible with any ImageViewer 3.x release.
 
 ## License
 
-Imageviewer and this extension are made available under the MIT license: https://opensource.org/license/mit
+ImageViewer and this extension are made available under the MIT license: https://opensource.org/license/mit
