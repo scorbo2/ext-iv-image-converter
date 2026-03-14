@@ -77,8 +77,8 @@ public class ImageConverterThread extends SimpleProgressWorker {
         problemCount = 0;
         totalTimeSpent = 0;
         wasCanceled = false;
-        fireProgressBegins(fileList.size());
         try {
+            fireProgressBegins(fileList.size());
             int i = 0;
             for (File file : fileList) {
                 if (!fireProgressUpdate(i, file.getName())) {
