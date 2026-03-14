@@ -27,7 +27,8 @@ Save it to your ~/.ImageViewer/extensions directory and restart the application.
 
 ### Option 3: build from source
 
-You can clone this repo and build the extension jar with Maven (Java 17 or higher required):
+You can clone this repo and build the extension jar with Maven (Java 17 or higher required).
+Note: you must already have run `mvn install` in the main ImageViewer repo, as that is a dependency for this code.
 
 ```shell
 git clone https://github.com/scorbo2/ext-iv-image-converter.git
